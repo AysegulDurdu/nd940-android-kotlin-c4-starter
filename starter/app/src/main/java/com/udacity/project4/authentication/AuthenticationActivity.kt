@@ -29,18 +29,8 @@ class AuthenticationActivity : AppCompatActivity() {
             launchSignInFlow()
         }
 
-        viewModel.authenticationState.observe(this, Observer {
-            when (it) {
-                AuthenticationViewModel.AuthenticationState.AUTHENTICATED -> {
-                    val intent = Intent(this@AuthenticationActivity, RemindersActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-                AuthenticationViewModel.AuthenticationState.UNAUTHENTICATED -> {
-                    Log.e(TAG, "unauthenticated !")
-                }
-            }
-        })
+        observe()
+
     }
 
     private fun launchSignInFlow() {
@@ -67,8 +57,23 @@ class AuthenticationActivity : AppCompatActivity() {
         }
     }
 
+    fun observe(){
+        viewModel.authenticationState.observe(this, Observer {
+            when (it) {
+                AuthenticationViewModel.AuthenticationState.AUTHENTICATED -> {
+                    val intent = Intent(this@AuthenticationActivity, RemindersActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                AuthenticationViewModel.AuthenticationState.UNAUTHENTICATED -> {
+                    Log.e(TAG, "unauthenticated !")
+                }
+            }
+        })
+    }
+
     companion object {
-        val SIGN_IN_REQUEST_CODE = 1000
+        val SIGN_IN_REQUEST_CODE = 1001
         val TAG: String = AuthenticationActivity::class.java.simpleName
     }
 }

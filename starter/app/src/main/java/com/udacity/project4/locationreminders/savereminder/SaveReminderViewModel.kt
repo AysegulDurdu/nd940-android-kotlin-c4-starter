@@ -79,4 +79,11 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         }
         return true
     }
+    fun getReminderDataItem() = ReminderDataItem(
+        title = reminderTitle.value,
+        description = reminderDescription.value,
+        location = reminderSelectedLocationStr.value,
+        latitude = latitude.value,
+        longitude = longitude.value
+    )
 }
