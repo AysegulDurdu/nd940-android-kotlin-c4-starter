@@ -47,22 +47,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        binding.buttonSave.setOnClickListener {
-            if (marker == null) {
-                _viewModel.showSnackBarInt.value = R.string.err_select_location
-            } else{
-                onLocationSelected()
-            }
-        }
+        binding.buttonSave.setOnClickListener { onLocationSelected() }
+
 
         return binding.root
     }
 
     private fun onLocationSelected() {
-        _viewModel.latitude.value = marker?.position?.latitude
-        _viewModel.longitude.value = marker?.position?.longitude
-        _viewModel.reminderSelectedLocationStr.value = marker?.title
-        _viewModel.navigationCommand.postValue(NavigationCommand.Back)
+        _viewModel.navigationCommand.value = NavigationCommand.Back
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -93,8 +85,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map = p0
 
         setMapStyle(map)
-        setPoiClick(map)
         enableLocation()
+        setPoiClick(map)
         setMapLongClick(map)
     }
 
@@ -119,25 +111,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map.setOnPoiClickListener { pointOfInterest ->
             map.clear()
 
-/*
             _viewModel.selectedPOI.value = pointOfInterest
             _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
             _viewModel.latitude.value = pointOfInterest.latLng.latitude
             _viewModel.longitude.value = pointOfInterest.latLng.longitude
-
-
- */
-
-
-            /*
             val marker = map.addMarker(
                 MarkerOptions()
                     .title(pointOfInterest.name)
                     .position(pointOfInterest.latLng)
             )
             marker.showInfoWindow()
-
-             */
         }
     }
 
@@ -164,6 +147,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         }
     }
+
+
 
     fun enableLocation() {
 

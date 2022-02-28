@@ -54,7 +54,7 @@ class SaveReminderFragment : BaseFragment() {
         geofencingClient = LocationServices.getGeofencingClient(requireContext())
         val intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT
-        geofencePendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        geofencePendingIntent = PendingIntent.getBroadcast(requireActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
 
         return binding.root
@@ -83,18 +83,6 @@ class SaveReminderFragment : BaseFragment() {
         } else {
             requestForeAndBackLocationPermissions()
         }
-    }
-
-    @TargetApi(29)
-    private fun foreAndBackLocationPermissionApproved(): Boolean {
-        val foregroundLocationApproved =
-            (PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION))
-        val backgroundPermissionApproved = if (runningQOrLater) {
-            PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-        } else {
-            true
-        }
-        return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     private fun checkDeviceLocationSettingsAndStartGeofence(reminder: ReminderDataItem, resolve: Boolean = true) {
@@ -133,6 +121,17 @@ class SaveReminderFragment : BaseFragment() {
 
             }
         }
+    }
+
+    private fun foreAndBackLocationPermissionApproved(): Boolean {
+        val foregroundLocationApproved =
+            (PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION))
+        val backgroundPermissionApproved = if (runningQOrLater) {
+            PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        } else {
+            true
+        }
+        return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     @TargetApi(29)
