@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -29,7 +28,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
+    private var marker: Marker? = null
     private val TAG = SelectLocationFragment::class.java.simpleName
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -47,13 +48,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         binding.buttonSave.setOnClickListener {
-            onLocationSelected()
+            if (marker == null) {
+                _viewModel.showSnackBarInt.value = R.string.err_select_location
+            } else{
+                onLocationSelected()
+            }
         }
+
         return binding.root
     }
 
     private fun onLocationSelected() {
-        _viewModel.navigationCommand.value = NavigationCommand.Back
+        _viewModel.latitude.value = marker?.position?.latitude
+        _viewModel.longitude.value = marker?.position?.longitude
+        _viewModel.reminderSelectedLocationStr.value = marker?.title
+        _viewModel.navigationCommand.postValue(NavigationCommand.Back)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -110,19 +119,29 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map.setOnPoiClickListener { pointOfInterest ->
             map.clear()
 
+/*
             _viewModel.selectedPOI.value = pointOfInterest
             _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
             _viewModel.latitude.value = pointOfInterest.latLng.latitude
             _viewModel.longitude.value = pointOfInterest.latLng.longitude
 
+
+ */
+
+
+            /*
             val marker = map.addMarker(
                 MarkerOptions()
                     .title(pointOfInterest.name)
                     .position(pointOfInterest.latLng)
             )
             marker.showInfoWindow()
+
+             */
         }
     }
+
+
 
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
@@ -133,6 +152,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 latLng.latitude,
                 latLng.longitude
             )
+
             map.addMarker(
                 MarkerOptions()
                     .position(latLng)
@@ -140,6 +160,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .snippet(snippet)
 
             )
+
+
         }
     }
 
@@ -170,6 +192,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 Log.e(TAG, "PERMISSION NOT GRANTED")
                 _viewModel.showSnackBarInt.value = R.string.location_required_error
             }
+            return
         }
     }
 
