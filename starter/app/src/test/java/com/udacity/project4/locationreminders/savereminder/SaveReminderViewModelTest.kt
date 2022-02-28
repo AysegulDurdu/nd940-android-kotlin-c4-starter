@@ -52,7 +52,7 @@ class SaveReminderViewModelTest {
 
         var reminderData = ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34)
 
-        viewModel.saveReminder()
+        viewModel.saveReminder(reminderData)
 
         val reminderFromDataSource = (fakeDataSource.getReminders() as Result.Success).data
 
