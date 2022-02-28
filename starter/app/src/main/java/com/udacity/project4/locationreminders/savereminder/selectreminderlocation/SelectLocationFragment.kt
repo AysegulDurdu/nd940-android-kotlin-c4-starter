@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -20,6 +21,7 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -45,9 +47,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         binding.buttonSave.setOnClickListener {
-            _viewModel.navigationCommand.value = NavigationCommand.Back
+            onLocationSelected()
         }
         return binding.root
+    }
+
+    private fun onLocationSelected() {
+        _viewModel.navigationCommand.value = NavigationCommand.Back
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -80,6 +86,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapStyle(map)
         setPoiClick(map)
         enableLocation()
+        setMapLongClick(map)
     }
 
     private fun setMapStyle(map: GoogleMap) {
@@ -103,22 +110,50 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map.setOnPoiClickListener { pointOfInterest ->
             map.clear()
 
+            _viewModel.selectedPOI.value = pointOfInterest
+            _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
+            _viewModel.latitude.value = pointOfInterest.latLng.latitude
+            _viewModel.longitude.value = pointOfInterest.latLng.longitude
+
             val marker = map.addMarker(
                 MarkerOptions()
                     .title(pointOfInterest.name)
                     .position(pointOfInterest.latLng)
             )
             marker.showInfoWindow()
-            setSelectedLocation(pointOfInterest.latLng,pointOfInterest.name,pointOfInterest)
         }
     }
 
-    private fun setSelectedLocation(latLng: LatLng, name: String, poi: PointOfInterest? = null) {
-        _viewModel.latitude.value = latLng.latitude
-        _viewModel.longitude.value = latLng.longitude
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            // A Snippet is Additional text that's displayed below the title.
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(getString(R.string.dropped_pin))
+                    .snippet(snippet)
 
-        _viewModel.selectedPOI.value = poi
-        _viewModel.reminderSelectedLocationStr.value = name
+            )
+        }
+    }
+
+    fun enableLocation() {
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            map.isMyLocationEnabled = true
+        } else {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -128,25 +163,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     ) {
         Log.e(TAG, "onRequestPermissionsResult.")
 
-        if (requestCode == REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableLocation()
+            } else {
+                Log.e(TAG, "PERMISSION NOT GRANTED")
+                _viewModel.showSnackBarInt.value = R.string.location_required_error
             }
-        }
-    }
-
-    fun enableLocation() {
-
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            map.isMyLocationEnabled = true
-        } else {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE)
         }
     }
 
 
     companion object {
-        const val REQUEST_CODE = 1
+        const val REQUEST_LOCATION_PERMISSION = 1
     }
 
 

@@ -1,18 +1,22 @@
 package com.udacity.project4
 
 import android.app.Application
+import android.view.View
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
+import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
@@ -21,6 +25,7 @@ import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -40,6 +45,7 @@ class RemindersActivityTest :
 
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
+    private var decorView: View? = null
     private val dataBindingIdlingResource = DataBindingIdlingResource()
 
     /**
@@ -47,7 +53,7 @@ class RemindersActivityTest :
      * at this step we will initialize Koin related code to be able to use it in out testing.
      */
     @Before
-    fun init() {
+    fun setup() {
         stopKoin()
         appContext = getApplicationContext()
         val myModule = module {
@@ -92,21 +98,64 @@ class RemindersActivityTest :
     }
 
     @Test
-    fun saveReminder_errorSelectLocation() {
+    fun getRemindersList() = runBlocking {
+
+        // Set initial state.
+        repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION", "LOCATION1", null, null))
+
+        // Start up Tasks screen.
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
         dataBindingIdlingResource.monitorActivity(activityScenario)
 
-        onView(withId(R.id.addReminderFAB)).perform(click())
-        onView(withId(R.id.selectLocation)).perform(click())
-        onView(withId(R.id.map)).perform(click())
-        onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
-        onView(withId(R.id.reminderTitle)).perform(replaceText("NEW TITLE"))
-        onView(withId(R.id.reminderDescription)).perform(replaceText("NEW DESCRIPTION"))
-        onView(withId(R.id.saveReminder)).perform(click())
-        onView(withText(R.string.err_select_location)).check(matches(isDisplayed()))
+        // Click on the task on the list and verify that all the data is correct.
+        onView(withId(R.id.title)).check(matches(withText("TITLE1")))
+        onView(withId(R.id.description)).check(matches(withText("DESCRIPTION")))
+        onView(withId(R.id.location)).check(matches(withText("LOCATION1")))
 
+        // Make sure the activity is closed before resetting the db.
         activityScenario.close()
-
     }
 
+    @Test
+    fun saveReminder() {
+        runBlocking {
+            val reminder = ReminderDTO("Ayse", "Aysegul", "Gaziantep", 37.05, 37.34)
+            repository.saveReminder(reminder)
+
+
+            val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+            dataBindingIdlingResource.monitorActivity(activityScenario)
+
+
+            onView(withId(R.id.title)).check(matches(withText("TITLE1")))
+            onView(withId(R.id.description)).check(matches(withText("DESCRIPTION")))
+            onView(withId(R.id.location)).check(matches(withText("LOCATION1")))
+
+
+
+            onView(withId(R.id.addReminderFAB)).perform(click())
+            onView(withId(R.id.selectLocation)).perform(click())
+            onView(withId(R.id.map)).perform(click())
+            onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
+            onView(withId(R.id.reminderTitle)).perform(replaceText("NEW TITLE"))
+            onView(withId(R.id.reminderDescription)).perform(replaceText("NEW DESCRIPTION"))
+            onView(withId(R.id.saveReminder)).perform(click())
+            onView(withText(R.string.err_select_location)).check(matches(isDisplayed()))
+
+            activityScenario.onActivity {
+                decorView = it.window.decorView
+            }
+
+
+            onView(withText("Reminder Saved !"))
+                .inRoot(withDecorView(not(decorView)))
+                .check(matches(isDisplayed()));
+
+            onView(withText("NEW TITLE")).check(matches(isDisplayed()))
+            onView(withText("TITLE15")).check(doesNotExist())
+
+            activityScenario.close()
+
+        }
+    }
 }

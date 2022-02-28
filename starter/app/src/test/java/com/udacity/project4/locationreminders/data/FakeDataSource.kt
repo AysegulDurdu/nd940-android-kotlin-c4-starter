@@ -25,7 +25,8 @@ class FakeDataSource(var reminders: MutableList<ReminderDTO>? = mutableListOf() 
     }
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
-        TODO("return the reminder with the id")
+        reminders?.let { return Result.Success(it[id.toInt()]) }
+        return Result.Error("Task not found", 105)
     }
 
     override suspend fun deleteAllReminders() {

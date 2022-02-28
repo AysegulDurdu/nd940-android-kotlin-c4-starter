@@ -13,6 +13,7 @@ import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.R
 import com.udacity.project4.locationreminders.RemindersActivity
+import kotlinx.android.synthetic.main.activity_authentication.*
 
 class AuthenticationActivity : AppCompatActivity() {
 
@@ -25,9 +26,7 @@ class AuthenticationActivity : AppCompatActivity() {
 
         val buttonLogin = findViewById<Button>(R.id.buttonLogin)
 
-        buttonLogin.setOnClickListener {
-            launchSignInFlow()
-        }
+
 
         observe()
 
@@ -66,10 +65,14 @@ class AuthenticationActivity : AppCompatActivity() {
                     finish()
                 }
                 AuthenticationViewModel.AuthenticationState.UNAUTHENTICATED -> {
+                    buttonLogin.setOnClickListener {
+                        launchSignInFlow()
+                    }
                     Log.e(TAG, "unauthenticated !")
                 }
             }
         })
+
     }
 
     companion object {

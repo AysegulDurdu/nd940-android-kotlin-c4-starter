@@ -1,12 +1,11 @@
 package com.udacity.project4.locationreminders.reminderslist
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.getOrAwaitValue
+import com.udacity.project4.locationreminders.getOrAwaitValueTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
@@ -39,9 +38,9 @@ class RemindersListViewModelTest {
 
         remindersListViewModel.loadReminders()
 
-        val remindersList = remindersListViewModel.remindersList.getOrAwaitValue()
+        val remindersList = remindersListViewModel.remindersList.getOrAwaitValueTest()
         assertThat(remindersList.size, `is`(2))
-        assertThat(remindersListViewModel.remindersList.getOrAwaitValue(), `is`(remindersList))
+        assertThat(remindersListViewModel.remindersList.getOrAwaitValueTest(), `is`(remindersList))
         assertThat(remindersList[0].id, `is`(reminder1.id))
         assertThat(remindersList[0].title, `is`(reminder1.title))
         assertThat(remindersList[0].description, `is`(reminder1.description))
@@ -49,9 +48,9 @@ class RemindersListViewModelTest {
         assertThat(remindersList[1].title, `is`(reminder2.title))
         assertThat(remindersList[1].description, `is`(reminder2.description))
 
-        assertThat(remindersListViewModel.remindersList.getOrAwaitValue().isEmpty(), `is`(false))
-        assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(false))
-        assertThat(remindersListViewModel.showNoData.getOrAwaitValue(), `is`(false))
+        assertThat(remindersListViewModel.remindersList.getOrAwaitValueTest().isEmpty(), `is`(false))
+        assertThat(remindersListViewModel.showLoading.getOrAwaitValueTest(), `is`(false))
+        assertThat(remindersListViewModel.showNoData.getOrAwaitValueTest(), `is`(false))
     }
 
 
