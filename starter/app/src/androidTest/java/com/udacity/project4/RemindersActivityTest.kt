@@ -48,7 +48,7 @@ class RemindersActivityTest :
      */
     @Before
     fun init() {
-        stopKoin()//stop the original app koin
+        stopKoin()
         appContext = getApplicationContext()
         val myModule = module {
             viewModel {
@@ -66,14 +66,13 @@ class RemindersActivityTest :
             single { RemindersLocalRepository(get()) as ReminderDataSource }
             single { LocalDB.createRemindersDao(appContext) }
         }
-        //declare a new koin module
+
         startKoin {
             modules(listOf(myModule))
         }
-        //Get our real repository
+
         repository = get()
 
-        //clear the data to start fresh
         runBlocking {
             repository.deleteAllReminders()
         }
