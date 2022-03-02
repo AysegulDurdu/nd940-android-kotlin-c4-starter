@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -28,7 +29,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
-    private var marker: Marker? = null
     private val TAG = SelectLocationFragment::class.java.simpleName
 
 
@@ -111,19 +111,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map.setOnPoiClickListener { pointOfInterest ->
             map.clear()
 
-            _viewModel.selectedPOI.value = pointOfInterest
-            _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
-            _viewModel.latitude.value = pointOfInterest.latLng.latitude
-            _viewModel.longitude.value = pointOfInterest.latLng.longitude
+
             val marker = map.addMarker(
                 MarkerOptions()
                     .title(pointOfInterest.name)
                     .position(pointOfInterest.latLng)
             )
             marker.showInfoWindow()
+            setSelectedLocation(pointOfInterest.latLng, pointOfInterest.name, pointOfInterest)
         }
     }
-
 
 
     private fun setMapLongClick(map: GoogleMap) {
@@ -143,11 +140,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .snippet(snippet)
 
             )
+            setSelectedLocation(latLng, resources.getString(R.string.selected_location))
 
 
         }
     }
 
+    private fun setSelectedLocation(latLng: LatLng, name: String, poi: PointOfInterest? = null) {
+        _viewModel.latitude.value = latLng.latitude
+        _viewModel.longitude.value = latLng.longitude
+        _viewModel.selectedPOI.value = poi
+        _viewModel.reminderSelectedLocationStr.value = name
+    }
 
 
     fun enableLocation() {
@@ -163,6 +167,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -171,7 +176,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         Log.e(TAG, "onRequestPermissionsResult.")
 
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableLocation()
             } else {
                 Log.e(TAG, "PERMISSION NOT GRANTED")
@@ -183,7 +188,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 
     companion object {
-        const val REQUEST_LOCATION_PERMISSION = 1
+        const val REQUEST_LOCATION_PERMISSION = 1002
     }
 
 

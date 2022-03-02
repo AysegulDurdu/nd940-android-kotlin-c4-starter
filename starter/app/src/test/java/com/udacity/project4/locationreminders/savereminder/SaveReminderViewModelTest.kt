@@ -37,9 +37,9 @@ class SaveReminderViewModelTest {
     fun setup() {
         stopKoin()
         val remindersList = mutableListOf<ReminderDTO>(
-            ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34,),
-            ReminderDTO("AAAA", "AAAAAA","AAAAAAAAA",36.05,36.34,),
-            ReminderDTO("BBBB", "BBBB","BBBBBBBBBB",35.05,35.34,)
+            ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34),
+            ReminderDTO("AAAA", "AAAAAA","AAAAAAAAA",36.05,36.34),
+            ReminderDTO("BBBB", "BBBB","BBBBBBBBBB",35.05,35.34)
         )
 
         fakeDataSource = FakeDataSource(remindersList)
@@ -65,7 +65,7 @@ class SaveReminderViewModelTest {
 
         fakeDataSource.deleteAllReminders()
 
-        var reminderData = ReminderDataItem("Ayse", "Aysegul","Gaziantep",37.05,37.34)
+        val reminderData = ReminderDataItem("Ayse", "Aysegul","Gaziantep",37.05,37.34)
 
         viewModel.saveReminder(reminderData)
 
