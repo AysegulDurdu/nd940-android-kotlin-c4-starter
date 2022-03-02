@@ -85,6 +85,8 @@ class SaveReminderFragment : BaseFragment() {
             addGeofence(reminder)
             _viewModel.validateAndSaveReminder(reminder)
 
+            Toast.makeText(requireContext(),getString(R.string.reminder_saved),Toast.LENGTH_LONG).show()
+
         }
         checkPermissionsAndStartGeofencing()
 
