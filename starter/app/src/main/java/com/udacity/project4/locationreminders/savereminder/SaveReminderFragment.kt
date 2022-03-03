@@ -86,21 +86,22 @@ class SaveReminderFragment : BaseFragment() {
             addGeofence(reminder)
 
             _viewModel.validateAndSaveReminder(reminder)
+            checkPermissionsAndStartGeofencing(reminder)
 
         }
-        checkPermissionsAndStartGeofencing()
+
 
     }
 
-    private fun checkPermissionsAndStartGeofencing() {
+    private fun checkPermissionsAndStartGeofencing(reminder: ReminderDataItem) {
         if (foregroundAndBackgroundLocationPermissionApproved()) {
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettingsAndStartGeofence(reminder)
         } else {
             requestForegroundAndBackgroundLocationPermissions()
         }
     }
 
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
+    private fun checkDeviceLocationSettingsAndStartGeofence(reminder: ReminderDataItem,resolve: Boolean = true) {
 
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
@@ -124,13 +125,13 @@ class SaveReminderFragment : BaseFragment() {
                     binding.constraintLayout,
                     R.string.location_required_error, Snackbar.LENGTH_SHORT
                 ).setAction(android.R.string.ok) {
-                    checkDeviceLocationSettingsAndStartGeofence()
+                    checkDeviceLocationSettingsAndStartGeofence(reminder)
                 }.show()
             }
         }
         locationSettingsResponseTask?.addOnCompleteListener {
             if (it.isSuccessful) {
-                //addGeofence()
+                addGeofence(reminder)
                 Log.d(TAG, "SUCCESS locationSettingsResponseTask")
 
             }
@@ -150,11 +151,7 @@ class SaveReminderFragment : BaseFragment() {
             else -> REQUEST_FORE_ONLY_PERMISSIONS_REQUEST_CODE
         }
         _viewModel.showSnackBarInt.value = R.string.location_required_error
-        ActivityCompat.requestPermissions(
-            requireActivity(),
-            permissionsArray,
-            resultCode
-        )
+        ActivityCompat.requestPermissions(requireActivity(), permissionsArray, resultCode)
     }
 
     @TargetApi(29)
@@ -239,7 +236,7 @@ class SaveReminderFragment : BaseFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
-            checkDeviceLocationSettingsAndStartGeofence(false)
+            checkDeviceLocationSettingsAndStartGeofence(_viewModel.getReminderDataItem())
         }
     }
 
@@ -270,7 +267,7 @@ class SaveReminderFragment : BaseFragment() {
                     })
                 }.show()
         } else {
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettingsAndStartGeofence(_viewModel.getReminderDataItem())
         }
     }
 
