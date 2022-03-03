@@ -28,6 +28,7 @@ import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
+import kotlinx.android.synthetic.main.it_reminder.*
 import org.koin.android.BuildConfig
 import org.koin.android.ext.android.inject
 
@@ -81,11 +82,10 @@ class SaveReminderFragment : BaseFragment() {
             val longitude = _viewModel.longitude.value
 
             val reminder = ReminderDataItem(title, description, location, latitude, longitude)
+
             addGeofence(reminder)
 
             _viewModel.validateAndSaveReminder(reminder)
-
-            Toast.makeText(requireContext(),getString(R.string.reminder_saved),Toast.LENGTH_LONG).show()
 
         }
         checkPermissionsAndStartGeofencing()
@@ -115,10 +115,7 @@ class SaveReminderFragment : BaseFragment() {
         locationSettingsResponseTask?.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try {
-                    exception.startResolutionForResult(
-                        requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON
-                    )
+                    //exception.startResolutionForResult(requireActivity(), REQUEST_TURN_DEVICE_LOCATION_ON)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
                 }
@@ -133,7 +130,7 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask?.addOnCompleteListener {
             if (it.isSuccessful) {
-                // addGeofence(reminder)
+                //addGeofence()
                 Log.d(TAG, "SUCCESS locationSettingsResponseTask")
 
             }
@@ -203,25 +200,40 @@ class SaveReminderFragment : BaseFragment() {
                 .addGeofence(geofence)
                 .build()
 
+            context?.let {
+                if (ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                } else {
+                    Log.d(TAG, "Error Permission addGeoFencingRequest")
+                    _viewModel.showSnackBarInt.value = R.string.error_adding_geofence
+                }
+            }
+        } else {
+            _viewModel.showSnackBarInt.value = R.string.error_adding_geofence
+        }
+/*
             if (!foregroundAndBackgroundLocationPermissionApproved()) {
                 return
             }
-            geofencingClient.removeGeofences(geofencePendingIntent)
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
                 ?.run {
                     addOnCompleteListener {
                         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                             addOnSuccessListener {
                                 Log.e(TAG, "Add Geofence ${geofence.requestId}")
+                                _viewModel.saveReminder(reminder)
                             }
                             addOnFailureListener {
                                 if ((it.message != null)) {
                                     Log.w(TAG, it.message!!)
                                 }
+                                Toast.makeText(requireContext(), "Unable to to create Geofence", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
                 }
-        }
+
+ */
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
