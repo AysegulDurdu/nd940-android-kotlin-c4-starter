@@ -14,6 +14,7 @@ import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.nullValue
+import org.hamcrest.core.Is
 import org.junit.*
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
@@ -66,6 +67,16 @@ class RemindersListViewModelTest {
 
         // THEN
         assertThat(viewModelList, not(nullValue()))
+    }
+    @Test
+    fun loadRemindersError_showTestException() {
+        dataSource.setReturnError(true)
+        listViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), dataSource)
+
+        listViewModel.loadReminders()
+
+        val value = listViewModel.showSnackBar.getOrAwaitValueTest()
+        Assert.assertThat(value, Is.`is`("Test exception"))
     }
 
     @Test

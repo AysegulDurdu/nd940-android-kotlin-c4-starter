@@ -85,7 +85,7 @@ class SaveReminderFragment : BaseFragment() {
 
             addGeofence(reminder)
 
-            _viewModel.validateAndSaveReminder(reminder)
+            //_viewModel.validateAndSaveReminder(reminder)
             checkPermissionsAndStartGeofencing(reminder)
 
         }
@@ -101,7 +101,7 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    private fun checkDeviceLocationSettingsAndStartGeofence(reminder: ReminderDataItem,resolve: Boolean = true) {
+    private fun checkDeviceLocationSettingsAndStartGeofence(reminder: ReminderDataItem, resolve: Boolean = true) {
 
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
@@ -116,6 +116,10 @@ class SaveReminderFragment : BaseFragment() {
         locationSettingsResponseTask?.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try {
+                    startIntentSenderForResult(
+                        exception.resolution.intentSender,
+                        REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null
+                    )
                     //exception.startResolutionForResult(requireActivity(), REQUEST_TURN_DEVICE_LOCATION_ON)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
@@ -200,6 +204,7 @@ class SaveReminderFragment : BaseFragment() {
             context?.let {
                 if (ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                    _viewModel.validateAndSaveReminder(reminder)
                 } else {
                     Log.d(TAG, "Error Permission addGeoFencingRequest")
                     _viewModel.showSnackBarInt.value = R.string.error_adding_geofence

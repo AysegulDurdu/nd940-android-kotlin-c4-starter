@@ -126,6 +126,29 @@ class RemindersActivityTest :
 
         onView(withText(R.string.err_select_location)).check(matches(isDisplayed()))
 
+    }
 
+    @Test
+    fun saveToRemindersList_ErrMessage() = runBlocking {
+
+        repository.saveReminder(ReminderDTO("AYSE", "AYSEGUL", "GAZİANTEP", null, null))
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        onView(withId(R.id.title)).check(matches(withText("AYSE")))
+        onView(withId(R.id.description)).check(matches(withText("AYSEGUL")))
+        onView(withId(R.id.location)).check(matches(withText("GAZİANTEP")))
+
+
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.selectLocation)).perform(click())
+        onView(withId(R.id.map)).perform(click())
+        onView(withId(R.id.buttonSave)).perform(click())
+        onView(withId(R.id.reminderDescription)).perform(replaceText("NEW DESCRIPTION"))
+        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withId(R.id.snackbar_text)).check(matches(withText(R.string.err_enter_title)))
+
+        activityScenario.close()
     }
 }

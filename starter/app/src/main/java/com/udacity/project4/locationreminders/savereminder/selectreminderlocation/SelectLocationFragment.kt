@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.Bundle
@@ -119,7 +120,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map.setOnPoiClickListener { pointOfInterest ->
             map.clear()
 
-
             val marker = map.addMarker(
                 MarkerOptions()
                     .title(pointOfInterest.name)
@@ -134,6 +134,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
             // A Snippet is Additional text that's displayed below the title.
+
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
@@ -161,7 +162,42 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         _viewModel.reminderSelectedLocationStr.value = name
     }
 
+/*
+    @SuppressLint("MissingPermission")
+    private fun enableLocation() {
+        if (isPermissionGranted()) {
+            map.isMyLocationEnabled = true
+        } else {
+            requestPermissions()
+        }
+    }
 
+    private fun isPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            REQUEST_LOCATION_PERMISSION)
+    }
+
+
+ */
+
+    @SuppressLint("MissingPermission")
+    private fun enableLocation() {
+        if (!::map.isInitialized) return
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            map.isMyLocationEnabled = true
+        } else {
+            // Permission to access the location is missing. Show rationale and request permission
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION)
+        }
+    }
+/*
     fun enableLocation() {
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -175,6 +211,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+
+ */
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -196,7 +234,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 
     companion object {
-        const val REQUEST_LOCATION_PERMISSION = 1002
+        const val REQUEST_LOCATION_PERMISSION = 1
     }
 
 

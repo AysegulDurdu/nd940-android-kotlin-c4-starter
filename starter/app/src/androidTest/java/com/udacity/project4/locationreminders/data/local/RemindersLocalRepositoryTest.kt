@@ -29,6 +29,8 @@ class RemindersLocalRepositoryTest {
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
+    private  val reminder = ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34,"1")
+
     @Before
     fun setup() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), RemindersDatabase::class.java)
@@ -38,6 +40,7 @@ class RemindersLocalRepositoryTest {
         repo = RemindersLocalRepository(db.reminderDao(), Dispatchers.Main)
     }
 
+
     @After
     fun closeDB() {
         db.close()
@@ -46,31 +49,31 @@ class RemindersLocalRepositoryTest {
     @Test
     fun saveRemindercheckEqualRepo() = runBlocking {
         //GIVE
-        val reminder = ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34,"1")
-        db.reminderDao().saveReminder(reminder)
+        repo.saveReminder(reminder)
 
         //WHEN
-        val result = repo.getReminder("1")
+        val result = (repo.getReminders() as Result.Success).data
 
         // THEN
-        result as Result.Success
-        assertThat(result.data.title, `is`("Ayse"))
-        assertThat(result.data.description, `is`("Aysegul"))
-        assertThat(result.data.location, `is`("Gaziantep"))
-        assertThat(result.data.latitude, `is`(37.05))
-        assertThat(result.data.longitude, `is`(37.34))
+        assertThat(result[0].id, `is`(reminder.id))
+        assertThat(result[0].title, `is`(reminder.title))
+        assertThat(result[0].description, `is`(reminder.description))
+        assertThat(result[0].latitude, `is`(reminder.latitude))
+        assertThat(result[0].longitude, `is`(reminder.longitude))
+        assertThat(result[0].location, `is`(reminder.location))
     }
 
     @Test
     fun deleteAllReminders() = runBlocking {
         //GIVE
-        val reminder = ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34,"1")
         repo.saveReminder(reminder)
+
+        var result = (repo.getReminders() as Result.Success).data
 
         repo.deleteAllReminders()
 
         //WHEN
-        var result = (repo.getReminders() as Result.Success).data
+         result = (repo.getReminders() as Result.Success).data
 
         //THEN
         assertThat(result, `is`(emptyList()))
