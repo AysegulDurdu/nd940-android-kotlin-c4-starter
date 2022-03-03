@@ -8,7 +8,9 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -23,6 +25,7 @@ import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -114,19 +117,42 @@ class RemindersActivityTest :
     }
 
     @Test
-    fun errorSelectLocation() {
+    fun saveToRemindersList() = runBlocking {
+
+        repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION", "LOCATION1", null, null))
+
+
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
         dataBindingIdlingResource.monitorActivity(activityScenario)
 
+
+        onView(withId(R.id.title)).check(matches(withText("TITLE1")))
+        onView(withId(R.id.description)).check(matches(withText("DESCRIPTION")))
+        onView(withId(R.id.location)).check(matches(withText("LOCATION1")))
         onView(withId(R.id.addReminderFAB)).perform(click())
-        onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
-        onView(withId(R.id.reminderTitle)).perform(replaceText("TITLE"))
-        onView(withId(R.id.reminderDescription)).perform(replaceText("DESCRIPTION"))
+        onView(withId(R.id.selectLocation)).perform(click())
+        onView(withId(R.id.map)).perform(click())
+        onView(withId(R.id.buttonSave)).perform(click())
+        onView(withId(R.id.reminderTitle)).perform(replaceText("NEW TITLE"))
+        onView(withId(R.id.reminderDescription)).perform(replaceText("NEW DESCRIPTION"))
         onView(withId(R.id.saveReminder)).perform(click())
 
-        onView(withText(R.string.err_select_location)).check(matches(isDisplayed()))
 
+        activityScenario.onActivity {
+            decorView = it.window.decorView
+        }
+
+        onView(withText("Reminder Saved !"))
+            .inRoot(withDecorView(not(decorView)))
+            .check(matches(isDisplayed()));
+
+        onView(withText("NEW TITLE")).check(matches(isDisplayed()))
+        onView(withText("TITLE")).check(doesNotExist())
+
+
+        activityScenario.close()
     }
+
 
     @Test
     fun saveToRemindersList_ErrMessage() = runBlocking {

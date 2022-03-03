@@ -47,36 +47,32 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun saveRemindercheckEqualRepo() = runBlocking {
-        //GIVE
-        repo.saveReminder(reminder)
+    fun saveReminder_retrievesReminder() = runBlocking {
+        val reminder = ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34)
+        db.reminderDao().saveReminder(reminder)
 
-        //WHEN
-        val result = (repo.getReminders() as Result.Success).data
 
-        // THEN
-        assertThat(result[0].id, `is`(reminder.id))
-        assertThat(result[0].title, `is`(reminder.title))
-        assertThat(result[0].description, `is`(reminder.description))
-        assertThat(result[0].latitude, `is`(reminder.latitude))
-        assertThat(result[0].longitude, `is`(reminder.longitude))
-        assertThat(result[0].location, `is`(reminder.location))
+        val result = repo.getReminder(reminder.id)
+
+
+        result as Result.Success
+        assertThat(result.data.title, `is`("Ayse"))
+        assertThat(result.data.description, `is`("Aysegul"))
+        assertThat(result.data.location, `is`("Gaziantep"))
+        assertThat(result.data.latitude, `is`(37.05))
+        assertThat(result.data.longitude, `is`(37.34))
+
     }
 
     @Test
-    fun deleteAllReminders() = runBlocking {
-        //GIVE
-        repo.saveReminder(reminder)
+    fun saveTask_retrievesNoTaskWrongId() = runBlocking {
+        val reminder = ReminderDTO("Ayse", "Aysegul","Gaziantep",37.05,37.34)
+        db.reminderDao().saveReminder(reminder)
 
-        var result = (repo.getReminders() as Result.Success).data
+        val result = repo.getReminder("id")
 
-        repo.deleteAllReminders()
-
-        //WHEN
-         result = (repo.getReminders() as Result.Success).data
-
-        //THEN
-        assertThat(result, `is`(emptyList()))
+        result as Result.Error
+        assertThat(result.message, `is`("Reminder not found!"))
     }
 
 
