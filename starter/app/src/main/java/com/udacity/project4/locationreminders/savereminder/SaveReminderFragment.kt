@@ -35,6 +35,7 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
     private lateinit var geofencingClient: GeofencingClient
+    var reminder: ReminderDataItem? = null
     private val TAG = "HuntMainActivity"
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
@@ -80,14 +81,17 @@ class SaveReminderFragment : BaseFragment() {
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
 
-            val reminderDataItem =
+            reminder =
                 ReminderDataItem(title, description, location, latitude, longitude)
 
-            addGeofence(reminderDataItem)
+            if (reminder!=null){
+                checkPermissionsAndStartGeofencing()
+            }
+            //addGeofence(reminderDataItem)
+            //_viewModel.validateAndSaveReminder(reminderDataItem)
 
-            _viewModel.validateAndSaveReminder(reminderDataItem)
         }
-        checkPermissionsAndStartGeofencing()
+       // checkPermissionsAndStartGeofencing()
     }
 
     private fun checkPermissionsAndStartGeofencing() {
@@ -131,6 +135,12 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask?.addOnCompleteListener {
             if (it.isSuccessful) {
+                if (reminder != null) {
+                    if (_viewModel.validateEnteredData(reminder!!)) {
+                        addGeofence(reminder!!)
+                        _viewModel.validateAndSaveReminder(reminder!!)
+                    }
+                }
                 //addGeofence()
                 Log.d(TAG, "SUCCESS locationSettingsResponseTask")
 
